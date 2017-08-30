@@ -1,0 +1,4 @@
+C:\Sources\dotnet-samples\service-bus-dotnet-manage-publish-subscribe-with-advanced-features\bin\Debug\net452\ServiceBusPublishSubscribeAdvanceFeatures.runtimeconfig.json
+C:\Sources\dotnet-samples\service-bus-dotnet-manage-publish-subscribe-with-advanced-features\bin\Debug\net452\ServiceBusPublishSubscribeAdvanceFeatures.runtimeconfig.dev.json
+C:\Sources\dotnet-samples\service-bus-dotnet-manage-publish-subscribe-with-advanced-features\obj\Debug\net452\ServiceBusPublishSubscribeAdvanceFeatures.csproj.ServiceBusPublishSubscribeAdvanceFeatures.exe.config
+C:\Sources\dotnet-samples\service-bus-dotnet-manage-publish-subscribe-with-advanced-features\obj\Debug\net452\ServiceBusPublishSubscribeAdvanceFeatures.csproj.CoreCompileInputs.cache

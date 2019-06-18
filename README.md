@@ -27,10 +27,10 @@ Set the environment variable `AZURE_AUTH_LOCATION` with the full path for an aut
     git clone https://github.com/Azure-Samples/service-bus-dotnet-manage-publish-subscribe-with-advanced-features.git
 
     cd service-bus-dotnet-manage-publish-subscribe-with-advanced-features
-
-    dotnet restore
-
-    dotnet run
+  
+    dotnet build
+    
+    bin\Debug\net452\ServiceBusPublishSubscribeAdvanceFeatures.exe
 
 ## More information ##
 

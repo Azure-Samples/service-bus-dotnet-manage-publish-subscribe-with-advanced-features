@@ -4,23 +4,23 @@ languages:
 - csharp
 products:
 - azure
-services: Service-Bus
-platforms: dotnet
-author: yaohaizh
+extensions:
+- services: Service-Bus
+- platforms: dotnet
 ---
 
 # Getting started on managing Service Bus Publish-Subscribe with advanced features in C# - sessions, dead-lettering, de-duplication and auto-deletion of idle entries #
 
-          Azure Service Bus basic scenario sample.
-          - Create namespace.
-          - Create a service bus subscription in the topic with session and dead-letter enabled.
-          - Create another subscription in the topic with auto deletion of idle entities.
-          - Create second topic with new Send Authorization rule, partitioning enabled and a new Service bus Subscription.
-          - Update second topic to change time for AutoDeleteOnIdle time, without Send rule and with a new manage authorization rule.
-          - Get the keys from default authorization rule to connect to topic.
-          - Send a "Hello" message to topic using Data plan sdk for Service Bus.
-          - Delete a topic
-          - Delete namespace
+ Azure Service Bus basic scenario sample.
+ - Create namespace.
+ - Create a service bus subscription in the topic with session and dead-letter enabled.
+ - Create another subscription in the topic with auto deletion of idle entities.
+ - Create second topic with new Send Authorization rule, partitioning enabled and a new Service bus Subscription.
+ - Update second topic to change time for AutoDeleteOnIdle time, without Send rule and with a new manage authorization rule.
+ - Get the keys from default authorization rule to connect to topic.
+ - Send a "Hello" message to topic using Data plan sdk for Service Bus.
+ - Delete a topic
+ - Delete namespace
 
 
 ## Running this Sample ##

@@ -7,11 +7,9 @@ products:
 extensions:
 - services: Service-Bus
 - platforms: dotnet
-description: "Azure Service Bus basic scenario sample."
-urlFragment: get-started-managing-service-bus
 ---
 
-# Getting started on managing Service Bus Publish-Subscribe with advanced features in C# - sessions, dead-lettering, de-duplication and auto-deletion of idle entries
+# Getting started on managing Service Bus Publish-Subscribe with advanced features in C# - sessions, dead-lettering, de-duplication and auto-deletion of idle entries #
 
  Azure Service Bus basic scenario sample.
  - Create namespace.

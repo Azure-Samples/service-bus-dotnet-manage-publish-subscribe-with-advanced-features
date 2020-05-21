@@ -165,11 +165,12 @@ namespace ServiceBusPublishSubscribeAdvanceFeatures
                 {
                     azure.ServiceBusNamespaces.DeleteById(serviceBusNamespace.Id);
                 }
-                catch (Exception)
+                catch (Exception e)
                 {
+                    Utilities.Log("Unexpected error occured: " + e.Message);
                 }
-                Utilities.Log("Deleted namespace " + namespaceName + "...");
 
+                Utilities.Log("Deleted namespace " + namespaceName + "...");
             }
             finally
             {
@@ -189,7 +190,8 @@ namespace ServiceBusPublishSubscribeAdvanceFeatures
                 }
             }
         }
-        public static void Main(string[] args)
+
+        public static void Main()
         {
             try
             {
@@ -205,6 +207,7 @@ namespace ServiceBusPublishSubscribeAdvanceFeatures
 
                 // Print selected subscription
                 Utilities.Log("Selected subscription: " + azure.SubscriptionId);
+
 
                 RunSample(azure);
             }

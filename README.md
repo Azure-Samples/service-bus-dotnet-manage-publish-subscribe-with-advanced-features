@@ -30,6 +30,8 @@ az ad sp create-for-rbac --sdk-auth > my.azureauth
 
 Follow one of the examples below depending on your operating system to create the environment variable. If using Windows close your open IDE or shell and restart it to be able to read the environment variable.
 
+Linux
+
 ```bash
 export AZURE_AUTH_LOCATION="<YourAuthFilePath>"
 ```
@@ -41,6 +43,7 @@ setx AZURE_AUTH_LOCATION "<YourAuthFilePath>"
 ```
 
 ## Run the application
+
 First, clone the repository on your machine:
 
 ```bash

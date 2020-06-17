@@ -151,7 +151,7 @@ namespace ServiceBusPublishSubscribeAdvanceFeatures
 
                 //=============================================================
                 // Send a message to topic.
-                Task.Run(() => Utilities.SendMessageToTopic(keys.PrimaryConnectionString, topic1Name, "Hello")).Wait();
+                Utilities.SendMessageToTopic(keys.PrimaryConnectionString, topic1Name, "Hello");
 
                 //=============================================================
                 // Delete a topic and namespace
@@ -191,7 +191,7 @@ namespace ServiceBusPublishSubscribeAdvanceFeatures
             }
         }
 
-        public static void Main()
+        public static void Main(string[] args)
         {
             try
             {

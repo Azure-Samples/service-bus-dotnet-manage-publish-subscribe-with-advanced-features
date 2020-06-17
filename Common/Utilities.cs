@@ -3109,15 +3109,16 @@ namespace Microsoft.Azure.Management.Samples.Common
             return Path.Combine(Utilities.ProjectPath, "Asset", certificateName);
         }
 
-        public static async Task SendMessageToTopic(string connectionString, string topicName, string message)
+        public static void SendMessageToTopic(string connectionString, string topicName, string message)
         {
             if (!IsRunningMocked)
             {
                 try
                 {
-                    await using var client = new ServiceBusClient(connectionString);
+                    ServiceBusClient client = new ServiceBusClient(connectionString);
                     var sender = client.CreateSender(topicName);
-                    await sender.SendAsync(new ServiceBusMessage(Encoding.UTF8.GetBytes(message)));
+
+                    sender.SendAsync(new ServiceBusMessage(Encoding.UTF8.GetBytes(message))).GetAwaiter().GetResult();
                 }
                 catch (Exception)
                 {
@@ -3125,21 +3126,22 @@ namespace Microsoft.Azure.Management.Samples.Common
             }
         }
 
-        //public static void SendMessageToQueue(string connectionString, string queueName, string message)
-        //{
-        //    if (!IsRunningMocked)
-        //    {
-        //        try
-        //        {
-        //            var queueClient = new QueueClient(connectionString, queueName, ReceiveMode.PeekLock);
-        //            queueClient.SendAsync(new Message(Encoding.UTF8.GetBytes(message))).Wait();
-        //            queueClient.Close();
-        //        }
-        //        catch (Exception)
-        //        {
-        //        }
-        //    }
-        //}
+        public static void SendMessageToQueue(string connectionString, string queueName, string message)
+        {
+            if (!IsRunningMocked)
+            {
+                try
+                {
+                    ServiceBusClient client = new ServiceBusClient(connectionString);
+                    var sender = client.CreateSender(queueName);
+
+                    sender.SendAsync(new ServiceBusMessage(Encoding.UTF8.GetBytes(message))).GetAwaiter().GetResult();
+                }
+                catch (Exception)
+                {
+                }
+            }
+        }
 
         private static string TrySsh(
             string host,

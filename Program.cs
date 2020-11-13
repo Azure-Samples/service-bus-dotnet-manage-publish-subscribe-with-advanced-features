@@ -1,7 +1,6 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
-
 using Microsoft.Azure.Management.Fluent;
 using Microsoft.Azure.Management.ResourceManager.Fluent;
 using Microsoft.Azure.Management.ResourceManager.Fluent.Core;
@@ -9,6 +8,7 @@ using Microsoft.Azure.Management.Samples.Common;
 using Microsoft.Azure.Management.ServiceBus.Fluent;
 using System;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace ServiceBusPublishSubscribeAdvanceFeatures
 {
@@ -26,7 +26,7 @@ namespace ServiceBusPublishSubscribeAdvanceFeatures
          * - Delete a topic
          * - Delete namespace
          */
-        public static void RunSample(IAzure azure)
+        public static async Task RunSample(IAzure azure)
         {
             var rgName = SdkContext.RandomResourceName("rgSB04_", 24);
             var namespaceName = SdkContext.RandomResourceName("namespace", 20);
@@ -127,7 +127,7 @@ namespace ServiceBusPublishSubscribeAdvanceFeatures
                 Utilities.Log("Updated  following authorization rules in second topic, new list of authorization rules are ");
 
                 authorizationRules = secondTopic.AuthorizationRules.List();
-                foreach (var authorizationRule in  authorizationRules)
+                foreach (var authorizationRule in authorizationRules)
                 {
                     Utilities.Print(authorizationRule);
                 }
@@ -139,7 +139,7 @@ namespace ServiceBusPublishSubscribeAdvanceFeatures
                 Utilities.Log("Number of authorization rule for namespace :" + namespaceAuthorizationRules.Count());
 
 
-                foreach (var namespaceAuthorizationRule in  namespaceAuthorizationRules)
+                foreach (var namespaceAuthorizationRule in namespaceAuthorizationRules)
                 {
                     Utilities.Print(namespaceAuthorizationRule);
                 }
@@ -151,7 +151,8 @@ namespace ServiceBusPublishSubscribeAdvanceFeatures
 
                 //=============================================================
                 // Send a message to topic.
-                Utilities.SendMessageToTopic(keys.PrimaryConnectionString, topic1Name, "Hello");
+                await Utilities.SendMessageToTopicAsync(keys.PrimaryConnectionString, topic1Name, "Hello");
+
                 //=============================================================
                 // Delete a topic and namespace
                 Utilities.Log("Deleting topic " + topic1Name + "in namespace " + namespaceName + "...");
@@ -164,11 +165,12 @@ namespace ServiceBusPublishSubscribeAdvanceFeatures
                 {
                     azure.ServiceBusNamespaces.DeleteById(serviceBusNamespace.Id);
                 }
-                catch (Exception)
+                catch (Exception e)
                 {
+                    Utilities.Log("Unexpected error occured: " + e.Message);
                 }
-                Utilities.Log("Deleted namespace " + namespaceName + "...");
 
+                Utilities.Log("Deleted namespace " + namespaceName + "...");
             }
             finally
             {
@@ -188,7 +190,8 @@ namespace ServiceBusPublishSubscribeAdvanceFeatures
                 }
             }
         }
-        public static void Main(string[] args)
+
+        public static async Task Main(string[] args)
         {
             try
             {
@@ -196,7 +199,7 @@ namespace ServiceBusPublishSubscribeAdvanceFeatures
                 // Authenticate
                 var credentials = SdkContext.AzureCredentialsFactory.FromFile(Environment.GetEnvironmentVariable("AZURE_AUTH_LOCATION"));
 
-                var azure = Azure
+                var azure = Microsoft.Azure.Management.Fluent.Azure
                     .Configure()
                     .WithLogLevel(HttpLoggingDelegatingHandler.Level.Basic)
                     .Authenticate(credentials)
@@ -205,7 +208,8 @@ namespace ServiceBusPublishSubscribeAdvanceFeatures
                 // Print selected subscription
                 Utilities.Log("Selected subscription: " + azure.SubscriptionId);
 
-                RunSample(azure);
+
+                await RunSample(azure);
             }
             catch (Exception e)
             {

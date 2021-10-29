@@ -5,10 +5,10 @@
 using Microsoft.Azure.Management.Fluent;
 using Microsoft.Azure.Management.ResourceManager.Fluent;
 using Microsoft.Azure.Management.ResourceManager.Fluent.Core;
-using Microsoft.Azure.Management.Samples.Common;
 using Microsoft.Azure.Management.ServiceBus.Fluent;
 using System;
 using System.Linq;
+using System.Text;
 
 namespace ServiceBusPublishSubscribeAdvanceFeatures
 {
@@ -22,7 +22,6 @@ namespace ServiceBusPublishSubscribeAdvanceFeatures
          * - Create second topic with new Send Authorization rule, partitioning enabled and a new Service bus Subscription.
          * - Update second topic to change time for AutoDeleteOnIdle time, without Send rule and with a new manage authorization rule.
          * - Get the keys from default authorization rule to connect to topic.
-         * - Send a "Hello" message to topic using Data plan sdk for Service Bus.
          * - Delete a topic
          * - Delete namespace
          */
@@ -43,7 +42,7 @@ namespace ServiceBusPublishSubscribeAdvanceFeatures
                 //============================================================
                 // Create a namespace.
 
-                Utilities.Log("Creating name space " + namespaceName + " in resource group " + rgName + "...");
+                Console.WriteLine("Creating name space " + namespaceName + " in resource group " + rgName + "...");
 
                 var serviceBusNamespace = azure.ServiceBusNamespaces
                         .Define(namespaceName)
@@ -53,18 +52,18 @@ namespace ServiceBusPublishSubscribeAdvanceFeatures
                         .WithNewTopic(topic1Name, 1024)
                         .Create();
 
-                Utilities.Log("Created service bus " + serviceBusNamespace.Name);
-                Utilities.Print(serviceBusNamespace);
+                Console.WriteLine("Created service bus " + serviceBusNamespace.Name);
+                PrintServiceBusNamespace(serviceBusNamespace);
 
-                Utilities.Log("Created topic following topic along with namespace " + namespaceName);
+                Console.WriteLine("Created topic following topic along with namespace " + namespaceName);
 
                 var firstTopic = serviceBusNamespace.Topics.GetByName(topic1Name);
-                Utilities.Print(firstTopic);
+                PrintTopic(firstTopic);
 
                 //============================================================
                 // Create a service bus subscription in the topic with session and dead-letter enabled.
 
-                Utilities.Log("Creating subscription " + subscription1Name + " in topic " + topic1Name + "...");
+                Console.WriteLine("Creating subscription " + subscription1Name + " in topic " + topic1Name + "...");
                 var firstSubscription = firstTopic.Subscriptions.Define(subscription1Name)
                         .WithSession()
                         .WithDefaultMessageTTL(TimeSpan.FromMinutes(20))
@@ -72,26 +71,26 @@ namespace ServiceBusPublishSubscribeAdvanceFeatures
                         .WithExpiredMessageMovedToDeadLetterSubscription()
                         .WithMessageMovedToDeadLetterSubscriptionOnFilterEvaluationException()
                         .Create();
-                Utilities.Log("Created subscription " + subscription1Name + " in topic " + topic1Name + "...");
+                Console.WriteLine("Created subscription " + subscription1Name + " in topic " + topic1Name + "...");
 
-                Utilities.Print(firstSubscription);
+                PrintServiceBusSubscription(firstSubscription);
 
                 //============================================================
                 // Create another subscription in the topic with auto deletion of idle entities.
-                Utilities.Log("Creating another subscription " + subscription2Name + " in topic " + topic1Name + "...");
+                Console.WriteLine("Creating another subscription " + subscription2Name + " in topic " + topic1Name + "...");
 
                 var secondSubscription = firstTopic.Subscriptions.Define(subscription2Name)
                         .WithSession()
                         .WithDeleteOnIdleDurationInMinutes(20)
                         .Create();
-                Utilities.Log("Created subscription " + subscription2Name + " in topic " + topic1Name + "...");
+                Console.WriteLine("Created subscription " + subscription2Name + " in topic " + topic1Name + "...");
 
-                Utilities.Print(secondSubscription);
+                PrintServiceBusSubscription(secondSubscription);
 
                 //============================================================
                 // Create second topic with new Send Authorization rule, partitioning enabled and a new Service bus Subscription.
 
-                Utilities.Log("Creating second topic " + topic2Name + ", with De-duplication and AutoDeleteOnIdle features...");
+                Console.WriteLine("Creating second topic " + topic2Name + ", with De-duplication and AutoDeleteOnIdle features...");
 
                 var secondTopic = serviceBusNamespace.Topics.Define(topic2Name)
                         .WithNewSendRule(sendRuleName)
@@ -99,21 +98,21 @@ namespace ServiceBusPublishSubscribeAdvanceFeatures
                         .WithNewSubscription(subscription3Name)
                         .Create();
 
-                Utilities.Log("Created second topic in namespace");
+                Console.WriteLine("Created second topic in namespace");
 
-                Utilities.Print(secondTopic);
+                PrintTopic(secondTopic);
 
-                Utilities.Log("Creating following authorization rules in second topic ");
+                Console.WriteLine("Creating following authorization rules in second topic ");
 
                 var authorizationRules = secondTopic.AuthorizationRules.List();
                 foreach (var authorizationRule in authorizationRules)
                 {
-                    Utilities.Print(authorizationRule);
+                    PrintAuthorizationRule(authorizationRule);
                 }
 
                 //============================================================
                 // Update second topic to change time for AutoDeleteOnIdle time, without Send rule and with a new manage authorization rule.
-                Utilities.Log("Updating second topic " + topic2Name + "...");
+                Console.WriteLine("Updating second topic " + topic2Name + "...");
 
                 secondTopic = secondTopic.Update()
                         .WithDeleteOnIdleDurationInMinutes(5)
@@ -121,44 +120,41 @@ namespace ServiceBusPublishSubscribeAdvanceFeatures
                         .WithNewManageRule(manageRuleName)
                         .Apply();
 
-                Utilities.Log("Updated second topic to change its auto deletion time");
+                Console.WriteLine("Updated second topic to change its auto deletion time");
 
-                Utilities.Print(secondTopic);
-                Utilities.Log("Updated  following authorization rules in second topic, new list of authorization rules are ");
+                PrintTopic(secondTopic);
+                Console.WriteLine("Updated  following authorization rules in second topic, new list of authorization rules are ");
 
                 authorizationRules = secondTopic.AuthorizationRules.List();
                 foreach (var authorizationRule in  authorizationRules)
                 {
-                    Utilities.Print(authorizationRule);
+                    PrintAuthorizationRule(authorizationRule);
                 }
 
                 //=============================================================
                 // Get connection string for default authorization rule of namespace
 
                 var namespaceAuthorizationRules = serviceBusNamespace.AuthorizationRules.List();
-                Utilities.Log("Number of authorization rule for namespace :" + namespaceAuthorizationRules.Count());
+                Console.WriteLine("Number of authorization rule for namespace :" + namespaceAuthorizationRules.Count());
 
 
                 foreach (var namespaceAuthorizationRule in  namespaceAuthorizationRules)
                 {
-                    Utilities.Print(namespaceAuthorizationRule);
+                    PrintNamespaceAuthorizationRule(namespaceAuthorizationRule);
                 }
 
-                Utilities.Log("Getting keys for authorization rule ...");
+                Console.WriteLine("Getting keys for authorization rule ...");
 
                 var keys = namespaceAuthorizationRules.FirstOrDefault().GetKeys();
-                Utilities.Print(keys);
+                PrintKeys(keys);
 
-                //=============================================================
-                // Send a message to topic.
-                Utilities.SendMessageToTopic(keys.PrimaryConnectionString, topic1Name, "Hello");
                 //=============================================================
                 // Delete a topic and namespace
-                Utilities.Log("Deleting topic " + topic1Name + "in namespace " + namespaceName + "...");
+                Console.WriteLine("Deleting topic " + topic1Name + "in namespace " + namespaceName + "...");
                 serviceBusNamespace.Topics.DeleteByName(topic1Name);
-                Utilities.Log("Deleted topic " + topic1Name + "...");
+                Console.WriteLine("Deleted topic " + topic1Name + "...");
 
-                Utilities.Log("Deleting namespace " + namespaceName + "...");
+                Console.WriteLine("Deleting namespace " + namespaceName + "...");
                 // This will delete the namespace and topic within it.
                 try
                 {
@@ -167,24 +163,24 @@ namespace ServiceBusPublishSubscribeAdvanceFeatures
                 catch (Exception)
                 {
                 }
-                Utilities.Log("Deleted namespace " + namespaceName + "...");
+                Console.WriteLine("Deleted namespace " + namespaceName + "...");
 
             }
             finally
             {
                 try
                 {
-                    Utilities.Log("Deleting Resource Group: " + rgName);
+                    Console.WriteLine("Deleting Resource Group: " + rgName);
                     azure.ResourceGroups.BeginDeleteByName(rgName);
-                    Utilities.Log("Deleted Resource Group: " + rgName);
+                    Console.WriteLine("Deleted Resource Group: " + rgName);
                 }
                 catch (NullReferenceException)
                 {
-                    Utilities.Log("Did not create any resources in Azure. No clean up is necessary");
+                    Console.WriteLine("Did not create any resources in Azure. No clean up is necessary");
                 }
                 catch (Exception g)
                 {
-                    Utilities.Log(g);
+                    Console.WriteLine(g);
                 }
             }
         }
@@ -203,14 +199,140 @@ namespace ServiceBusPublishSubscribeAdvanceFeatures
                     .WithDefaultSubscription();
 
                 // Print selected subscription
-                Utilities.Log("Selected subscription: " + azure.SubscriptionId);
+                Console.WriteLine("Selected subscription: " + azure.SubscriptionId);
 
                 RunSample(azure);
             }
             catch (Exception e)
             {
-                Utilities.Log(e.ToString());
+                Console.WriteLine(e.ToString());
             }
+        }
+
+        static void PrintServiceBusNamespace(IServiceBusNamespace serviceBusNamespace)
+        {
+            var builder = new StringBuilder()
+                    .Append("Service bus Namespace: ").Append(serviceBusNamespace.Id)
+                    .Append("\n\tName: ").Append(serviceBusNamespace.Name)
+                    .Append("\n\tRegion: ").Append(serviceBusNamespace.RegionName)
+                    .Append("\n\tResourceGroupName: ").Append(serviceBusNamespace.ResourceGroupName)
+                    .Append("\n\tCreatedAt: ").Append(serviceBusNamespace.CreatedAt)
+                    .Append("\n\tUpdatedAt: ").Append(serviceBusNamespace.UpdatedAt)
+                    .Append("\n\tDnsLabel: ").Append(serviceBusNamespace.DnsLabel)
+                    .Append("\n\tFQDN: ").Append(serviceBusNamespace.Fqdn)
+                    .Append("\n\tSku: ")
+                    .Append("\n\t\tCapacity: ").Append(serviceBusNamespace.Sku.Capacity)
+                    .Append("\n\t\tSkuName: ").Append(serviceBusNamespace.Sku.Name)
+                    .Append("\n\t\tTier: ").Append(serviceBusNamespace.Sku.Tier);
+
+            Console.WriteLine(builder.ToString());
+        }
+
+        static void PrintTopic(ITopic topic)
+        {
+            StringBuilder builder = new StringBuilder()
+                    .Append("Service bus topic: ").Append(topic.Id)
+                    .Append("\n\tName: ").Append(topic.Name)
+                    .Append("\n\tResourceGroupName: ").Append(topic.ResourceGroupName)
+                    .Append("\n\tCreatedAt: ").Append(topic.CreatedAt)
+                    .Append("\n\tUpdatedAt: ").Append(topic.UpdatedAt)
+                    .Append("\n\tAccessedAt: ").Append(topic.AccessedAt)
+                    .Append("\n\tActiveMessageCount: ").Append(topic.ActiveMessageCount)
+                    .Append("\n\tCurrentSizeInBytes: ").Append(topic.CurrentSizeInBytes)
+                    .Append("\n\tDeadLetterMessageCount: ").Append(topic.DeadLetterMessageCount)
+                    .Append("\n\tDefaultMessageTtlDuration: ").Append(topic.DefaultMessageTtlDuration)
+                    .Append("\n\tDuplicateMessageDetectionHistoryDuration: ").Append(topic.DuplicateMessageDetectionHistoryDuration)
+                    .Append("\n\tIsBatchedOperationsEnabled: ").Append(topic.IsBatchedOperationsEnabled)
+                    .Append("\n\tIsDuplicateDetectionEnabled: ").Append(topic.IsDuplicateDetectionEnabled)
+                    .Append("\n\tIsExpressEnabled: ").Append(topic.IsExpressEnabled)
+                    .Append("\n\tIsPartitioningEnabled: ").Append(topic.IsPartitioningEnabled)
+                    .Append("\n\tDeleteOnIdleDurationInMinutes: ").Append(topic.DeleteOnIdleDurationInMinutes)
+                    .Append("\n\tMaxSizeInMB: ").Append(topic.MaxSizeInMB)
+                    .Append("\n\tScheduledMessageCount: ").Append(topic.ScheduledMessageCount)
+                    .Append("\n\tStatus: ").Append(topic.Status)
+                    .Append("\n\tTransferMessageCount: ").Append(topic.TransferMessageCount)
+                    .Append("\n\tSubscriptionCount: ").Append(topic.SubscriptionCount)
+                    .Append("\n\tTransferDeadLetterMessageCount: ").Append(topic.TransferDeadLetterMessageCount);
+
+            Console.WriteLine(builder.ToString());
+        }
+        static void PrintServiceBusSubscription(Microsoft.Azure.Management.ServiceBus.Fluent.ISubscription serviceBusSubscription)
+        {
+            StringBuilder builder = new StringBuilder()
+                    .Append("Service bus subscription: ").Append(serviceBusSubscription.Id)
+                    .Append("\n\tName: ").Append(serviceBusSubscription.Name)
+                    .Append("\n\tResourceGroupName: ").Append(serviceBusSubscription.ResourceGroupName)
+                    .Append("\n\tCreatedAt: ").Append(serviceBusSubscription.CreatedAt)
+                    .Append("\n\tUpdatedAt: ").Append(serviceBusSubscription.UpdatedAt)
+                    .Append("\n\tAccessedAt: ").Append(serviceBusSubscription.AccessedAt)
+                    .Append("\n\tActiveMessageCount: ").Append(serviceBusSubscription.ActiveMessageCount)
+                    .Append("\n\tDeadLetterMessageCount: ").Append(serviceBusSubscription.DeadLetterMessageCount)
+                    .Append("\n\tDefaultMessageTtlDuration: ").Append(serviceBusSubscription.DefaultMessageTtlDuration)
+                    .Append("\n\tIsBatchedOperationsEnabled: ").Append(serviceBusSubscription.IsBatchedOperationsEnabled)
+                    .Append("\n\tDeleteOnIdleDurationInMinutes: ").Append(serviceBusSubscription.DeleteOnIdleDurationInMinutes)
+                    .Append("\n\tScheduledMessageCount: ").Append(serviceBusSubscription.ScheduledMessageCount)
+                    .Append("\n\tStatus: ").Append(serviceBusSubscription.Status)
+                    .Append("\n\tTransferMessageCount: ").Append(serviceBusSubscription.TransferMessageCount)
+                    .Append("\n\tIsDeadLetteringEnabledForExpiredMessages: ").Append(serviceBusSubscription.IsDeadLetteringEnabledForExpiredMessages)
+                    .Append("\n\tIsSessionEnabled: ").Append(serviceBusSubscription.IsSessionEnabled)
+                    .Append("\n\tLockDurationInSeconds: ").Append(serviceBusSubscription.LockDurationInSeconds)
+                    .Append("\n\tMaxDeliveryCountBeforeDeadLetteringMessage: ").Append(serviceBusSubscription.MaxDeliveryCountBeforeDeadLetteringMessage)
+                    .Append("\n\tIsDeadLetteringEnabledForFilterEvaluationFailedMessages: ").Append(serviceBusSubscription.IsDeadLetteringEnabledForFilterEvaluationFailedMessages)
+                    .Append("\n\tTransferMessageCount: ").Append(serviceBusSubscription.TransferMessageCount)
+                    .Append("\n\tTransferDeadLetterMessageCount: ").Append(serviceBusSubscription.TransferDeadLetterMessageCount);
+
+            Console.WriteLine(builder.ToString());
+        }
+
+        static void PrintAuthorizationRule(ITopicAuthorizationRule topicAuthorizationRule)
+        {
+            StringBuilder builder = new StringBuilder()
+                    .Append("Service bus topic authorization rule: ").Append(topicAuthorizationRule.Id)
+                    .Append("\n\tName: ").Append(topicAuthorizationRule.Name)
+                    .Append("\n\tResourceGroupName: ").Append(topicAuthorizationRule.ResourceGroupName)
+                    .Append("\n\tNamespace Name: ").Append(topicAuthorizationRule.NamespaceName)
+                    .Append("\n\tTopic Name: ").Append(topicAuthorizationRule.TopicName);
+
+            var rights = topicAuthorizationRule.Rights;
+            builder.Append("\n\tNumber of access rights in queue: ").Append(rights.Count);
+            foreach (var right in rights)
+            {
+                builder.Append("\n\t\tAccessRight: ")
+                        .Append("\n\t\t\tName :").Append(right.ToString());
+            }
+
+            Console.WriteLine(builder.ToString());
+        }
+
+        static void PrintNamespaceAuthorizationRule(INamespaceAuthorizationRule namespaceAuthorizationRule)
+        {
+            StringBuilder builder = new StringBuilder()
+                    .Append("Service bus queue authorization rule: ").Append(namespaceAuthorizationRule.Id)
+                    .Append("\n\tName: ").Append(namespaceAuthorizationRule.Name)
+                    .Append("\n\tResourceGroupName: ").Append(namespaceAuthorizationRule.ResourceGroupName)
+                    .Append("\n\tNamespace Name: ").Append(namespaceAuthorizationRule.NamespaceName);
+
+            var rights = namespaceAuthorizationRule.Rights;
+            builder.Append("\n\tNumber of access rights in queue: ").Append(rights.Count());
+            foreach (var right in rights)
+            {
+                builder.Append("\n\t\tAccessRight: ")
+                        .Append("\n\t\t\tName :").Append(right.ToString());
+            }
+
+            Console.WriteLine(builder.ToString());
+        }
+
+        static void PrintKeys(IAuthorizationKeys keys)
+        {
+            StringBuilder builder = new StringBuilder()
+                    .Append("Authorization keys: ")
+                    .Append("\n\tPrimaryKey: ").Append(keys.PrimaryKey)
+                    .Append("\n\tPrimaryConnectionString: ").Append(keys.PrimaryConnectionString)
+                    .Append("\n\tSecondaryKey: ").Append(keys.SecondaryKey)
+                    .Append("\n\tSecondaryConnectionString: ").Append(keys.SecondaryConnectionString);
+
+            Console.WriteLine(builder.ToString());
         }
     }
 }

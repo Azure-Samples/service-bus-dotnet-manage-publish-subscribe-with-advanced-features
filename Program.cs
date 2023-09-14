@@ -40,7 +40,7 @@ namespace ServiceBusPublishSubscribeAdvanceFeatures
                 // Create a resource group in the USCentral region
                 var rgName = Utilities.CreateRandomName("rgSB04_");
                 Utilities.Log($"creating resource group with name : {rgName} ...");
-                var rgLro = await subscription.GetResourceGroups().CreateOrUpdateAsync(WaitUntil.Completed, rgName, new ResourceGroupData(AzureLocation.CentralUS));
+                var rgLro = await subscription.GetResourceGroups().CreateOrUpdateAsync(WaitUntil.Completed, rgName, new ResourceGroupData(AzureLocation.WestUS));
                 var resourceGroup = rgLro.Value;
                 _resourceGroupId = resourceGroup.Id;
                 Utilities.Log("Created resource group with name: " + resourceGroup.Data.Name + "...");
@@ -52,12 +52,13 @@ namespace ServiceBusPublishSubscribeAdvanceFeatures
                 var data = new ServiceBusNamespaceData(AzureLocation.WestUS)
                 {
                     Sku = new ServiceBusSku(ServiceBusSkuName.Standard),
+                    Location = AzureLocation.WestUS
                 };
                 var serviceBusNamespace = (await namespaceCollection.CreateOrUpdateAsync(WaitUntil.Completed,nameSpaceName,data)).Value;
                 Utilities.Log("Created service bus " + serviceBusNamespace.Data.Name);
 
                 //Create a topic
-                Utilities.Log("Create topic1 in namespace");
+                Utilities.Log("Creating topic1 in namespace...");
                 var topicName = Utilities.CreateRandomName("topic1_");
                 var topicCollection = serviceBusNamespace.GetServiceBusTopics();
                 var topiccData = new ServiceBusTopicData()
@@ -69,7 +70,6 @@ namespace ServiceBusPublishSubscribeAdvanceFeatures
                 Utilities.Log("Created topic following topic along with namespace : " + nameSpaceName);
                 
                 var firstTopic = (serviceBusNamespace.GetServiceBusTopic(topicName)).Value;
-                Utilities.Log(firstTopic);
 
                 //============================================================
 
@@ -86,8 +86,7 @@ namespace ServiceBusPublishSubscribeAdvanceFeatures
                     DeadLetteringOnFilterEvaluationExceptions = true,
                 };
                 var firstSubscription = (await subscription1Collection.CreateOrUpdateAsync(WaitUntil.Completed,subscription1Name, subscription1Data)).Value;
-                Utilities.Log("Created subscription " + subscription1Name + " in topic " + topic1.Data.Name + "...");
-                Utilities.Log(firstSubscription);
+                Utilities.Log("Created subscription " + firstSubscription.Data.Name + " in topic " + topic1.Data.Name + "...");
 
                 //============================================================
 
@@ -101,21 +100,20 @@ namespace ServiceBusPublishSubscribeAdvanceFeatures
                     AutoDeleteOnIdle = TimeSpan.FromMinutes(20),
                 };
                 var subscription2 = (await subscription2Collection.CreateOrUpdateAsync(WaitUntil.Completed, subscription2Name, subscription2Data)).Value;
-                Utilities.Log("Created another subscription" + subscription2Name + " in topic " + topic1.Data.Name + "...");
-                Utilities.Log(subscription2);
+                Utilities.Log("Created another subscription" + subscription2.Data.Name + " in topic " + topic1.Data.Name + "...");
 
                 //============================================================
 
                 // Create second topic with new Send Authorization rule, partitioning enabled and a new Service bus Subscription.
                 var topic2Name = Utilities.CreateRandomName("topic2_");
-                Console.WriteLine("Creating second topic " + topic2Name + ", with De-duplication and AutoDeleteOnIdle features...");
+                Utilities.Log("Creating second topic " + topic2Name + ", with De-duplication and AutoDeleteOnIdle features...");
                 var topic2Collection = serviceBusNamespace.GetServiceBusTopics();
                 var topic2Data = new ServiceBusTopicData()
                 {
                     EnablePartitioning = true,
                 };
                 var topic2 = (await topic2Collection.CreateOrUpdateAsync(WaitUntil.Completed, topic2Name, topic2Data)).Value;
-                Console.WriteLine("Created second topic :" + topic2.Data.Name);
+                Utilities.Log("Created second topic :" + topic2.Data.Name);
 
                 //Create rule
                 var sendRuleName = Utilities.CreateRandomName("SendRule");
@@ -141,12 +139,6 @@ namespace ServiceBusPublishSubscribeAdvanceFeatures
                 };
                 var subscription3 = (await subscription3Collection.CreateOrUpdateAsync(WaitUntil.Completed, subscription3Name, subscription3Data)).Value;
                 Utilities.Log("Created third subscription" + subscription3.Data.Name);
-
-                //List
-                await foreach (var authorizationRule in ruleCollection.GetAllAsync())
-                {
-                    Utilities.Log(authorizationRule);
-                }
 
                 //============================================================
 
@@ -179,34 +171,15 @@ namespace ServiceBusPublishSubscribeAdvanceFeatures
                 _ = topic2.UpdateAsync(WaitUntil.Completed,updateData);
                 Utilities.Log("Updated second topic to change its auto deletion time");
 
-                //List
-                Console.WriteLine("Updated  following authorization rules in second topic, new list of authorization rules are ");
-                await foreach (var authorizationRule in ruleCollection.GetAllAsync())
-                {
-                    Utilities.Log(authorizationRule);
-                }
-
                 //=============================================================
 
                 // Get connection string for default authorization rule of namespace
-                var count = 0;
-                await foreach(var namespaceAuthorizationRule in ruleCollection.GetAllAsync())
-                {
-                    if(count == 0)
-                    {
-                        Console.WriteLine("Getting keys for authorization rule ...");
-                        Utilities.Log(namespaceAuthorizationRule.GetKeys());
-                        Console.WriteLine("Got keys for authorization rule ...");
-                    }
-                    Utilities.Log(namespaceAuthorizationRule);
-                    count++;
-                }
-                Utilities.Log("Number of authorization rule for namespace :" + count);
+                var namespaceAuthorizationRules = serviceBusNamespace.GetServiceBusNamespaceAuthorizationRules().ToList();
+                Utilities.Log("Number of authorization rule for namespace :" + namespaceAuthorizationRules.Count());
                 
                 //=============================================================
                
                 // Delete a topic and namespace
-               
                 Utilities.Log("Deleting topic " + topicName + "in namespace : " + serviceBusNamespace.Data.Name + "...");
                 await topic1.DeleteAsync(WaitUntil.Completed);
                 Utilities.Log("Deleted topic " + topicName + "...");
